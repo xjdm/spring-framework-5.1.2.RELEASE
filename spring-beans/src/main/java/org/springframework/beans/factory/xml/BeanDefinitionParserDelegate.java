@@ -1019,9 +1019,11 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public Object parsePropertySubElement(Element ele, @Nullable BeanDefinition bd, @Nullable String defaultValueType) {
+		// 如果<property>没有使用Spring默认的命名空间，则使用用户自定义的规则解析内嵌元素
 		if (!isDefaultNamespace(ele)) {
 			return parseNestedCustomElement(ele, bd);
 		}
+		// 如果子元素是bean，则使用解析<Bean>元素的方法解析
 		else if (nodeNameEquals(ele, BEAN_ELEMENT)) {
 			BeanDefinitionHolder nestedBd = parseBeanDefinitionElement(ele, bd);
 			if (nestedBd != null) {
@@ -1029,12 +1031,15 @@ public class BeanDefinitionParserDelegate {
 			}
 			return nestedBd;
 		}
+		// 如果子元素是ref，ref中只能有以下三个属性：bean、local、parent
 		else if (nodeNameEquals(ele, REF_ELEMENT)) {
 			// A generic reference to any name of any bean.
+			// 可以不再同一个Spring配置文件中，具体请参考Spring对ref的配置规则
 			String refName = ele.getAttribute(BEAN_REF_ATTRIBUTE);
 			boolean toParent = false;
 			if (!StringUtils.hasLength(refName)) {
 				// A reference to the id of another bean in a parent context.
+				// 获取<property>元素中parent属性值，引用父级容器中的Bean
 				refName = ele.getAttribute(PARENT_REF_ATTRIBUTE);
 				toParent = true;
 				if (!StringUtils.hasLength(refName)) {
@@ -1046,16 +1051,21 @@ public class BeanDefinitionParserDelegate {
 				error("<ref> element contains empty target attribute", ele);
 				return null;
 			}
+			// 创建ref类型数据，指向被引用的对象
 			RuntimeBeanReference ref = new RuntimeBeanReference(refName, toParent);
+			// 设置引用类型值是被当前子元素所引用
 			ref.setSource(extractSource(ele));
 			return ref;
 		}
+		// 如果子元素是<idref>，使用解析ref元素的方法解析
 		else if (nodeNameEquals(ele, IDREF_ELEMENT)) {
 			return parseIdRefElement(ele);
 		}
+		// 如果子元素是<value>,使用解析value元素的方法解析
 		else if (nodeNameEquals(ele, VALUE_ELEMENT)) {
 			return parseValueElement(ele, defaultValueType);
 		}
+		// 如果子元素是null，为<property>设置一个封装null值的字符串数据
 		else if (nodeNameEquals(ele, NULL_ELEMENT)) {
 			// It's a distinguished null value. Let's wrap it in a TypedStringValue
 			// object in order to preserve the source location.
@@ -1063,21 +1073,27 @@ public class BeanDefinitionParserDelegate {
 			nullHolder.setSource(extractSource(ele));
 			return nullHolder;
 		}
+		// 如果子元素是<array>,使用解析array集合子元素的方法解析
 		else if (nodeNameEquals(ele, ARRAY_ELEMENT)) {
 			return parseArrayElement(ele, bd);
 		}
+		// 如果子元素是<list>,使用解析list集合子元素的方法解析
 		else if (nodeNameEquals(ele, LIST_ELEMENT)) {
 			return parseListElement(ele, bd);
 		}
+		// 如果子元素是<set>,使用解析set集合子元素的方法解析
 		else if (nodeNameEquals(ele, SET_ELEMENT)) {
 			return parseSetElement(ele, bd);
 		}
+		// 如果子元素是<map>,使用解析map集合子元素的方法解析
 		else if (nodeNameEquals(ele, MAP_ELEMENT)) {
 			return parseMapElement(ele, bd);
 		}
+		// 如果子元素是<props>,使用解析props集合子元素的方法解析
 		else if (nodeNameEquals(ele, PROPS_ELEMENT)) {
 			return parsePropsElement(ele);
 		}
+		// 既不是ref，又不是value，也不是集合，则子元素配置错误，返回null
 		else {
 			error("Unknown property sub-element: [" + ele.getNodeName() + "]", ele);
 			return null;
@@ -1167,12 +1183,17 @@ public class BeanDefinitionParserDelegate {
 	 * Parse a list element.
 	 */
 	public List<Object> parseListElement(Element collectionEle, @Nullable BeanDefinition bd) {
+		// 获取<list>元素中的value-type属性，即获取集合元素的数据类型
 		String defaultElementType = collectionEle.getAttribute(VALUE_TYPE_ATTRIBUTE);
+		// 获取<list>集合元素中的所有子节点
 		NodeList nl = collectionEle.getChildNodes();
+		// Spring中将List封装为ManagedList
 		ManagedList<Object> target = new ManagedList<>(nl.getLength());
 		target.setSource(extractSource(collectionEle));
+		// 设置集合目标数据类型
 		target.setElementTypeName(defaultElementType);
 		target.setMergeEnabled(parseMergeAttribute(collectionEle));
+		// 具体的<list>元素解析
 		parseCollectionElements(nl, target, bd, defaultElementType);
 		return target;
 	}
@@ -1194,9 +1215,12 @@ public class BeanDefinitionParserDelegate {
 	protected void parseCollectionElements(
 			NodeList elementNodes, Collection<Object> target, @Nullable BeanDefinition bd, String defaultElementType) {
 
+		// 遍历集合所有节点
 		for (int i = 0; i < elementNodes.getLength(); i++) {
 			Node node = elementNodes.item(i);
+			// 节点不是description节点
 			if (node instanceof Element && !nodeNameEquals(node, DESCRIPTION_ELEMENT)) {
+				// 将解析的元素加入集合中，递归调用下一个子元素
 				target.add(parsePropertySubElement((Element) node, bd, defaultElementType));
 			}
 		}
