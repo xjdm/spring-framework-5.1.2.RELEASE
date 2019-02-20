@@ -730,9 +730,11 @@ public class BeanDefinitionParserDelegate {
 	 * Parse property sub-elements of the given bean element.
 	 */
 	public void parsePropertyElements(Element beanEle, BeanDefinition bd) {
+		// 获取<Bean>元素中所有的子元素
 		NodeList nl = beanEle.getChildNodes();
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			// 如果子元素是<property>子元素，则调用解析<property>子元素方法解析
 			if (isCandidateElement(node) && nodeNameEquals(node, PROPERTY_ELEMENT)) {
 				parsePropertyElement((Element) node, bd);
 			}
@@ -862,6 +864,7 @@ public class BeanDefinitionParserDelegate {
 	 * Parse a property element.
 	 */
 	public void parsePropertyElement(Element ele, BeanDefinition bd) {
+		// 获取<property>元素的名字
 		String propertyName = ele.getAttribute(NAME_ATTRIBUTE);
 		if (!StringUtils.hasLength(propertyName)) {
 			error("Tag 'property' must have a 'name' attribute", ele);
@@ -869,12 +872,17 @@ public class BeanDefinitionParserDelegate {
 		}
 		this.parseState.push(new PropertyEntry(propertyName));
 		try {
+			// 如果一个Bean中已经有同名的property存在，则不进行解析，直接返回。
+			// 即如果在同一个Bean中配置同名的property，则只有第一个起作用
 			if (bd.getPropertyValues().contains(propertyName)) {
 				error("Multiple 'property' definitions for property '" + propertyName + "'", ele);
 				return;
 			}
+			// 解析获取property的值
 			Object val = parsePropertyValue(ele, bd, propertyName);
+			// 根据property的名字和值创建property实例
 			PropertyValue pv = new PropertyValue(propertyName, val);
+			// 解析<property>元素中的属性
 			parseMetaElements(ele, pv);
 			pv.setSource(extractSource(ele));
 			bd.getPropertyValues().addPropertyValue(pv);
@@ -937,10 +945,12 @@ public class BeanDefinitionParserDelegate {
 				"<constructor-arg> element");
 
 		// Should only have one child element: ref, value, list, etc.
+		// 获取<property>的所有元素，只能是其中一种类型:ref,value,list,etc
 		NodeList nl = ele.getChildNodes();
 		Element subElement = null;
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			// 子元素不是description和mata属性
 			if (node instanceof Element && !nodeNameEquals(node, DESCRIPTION_ELEMENT) &&
 					!nodeNameEquals(node, META_ELEMENT)) {
 				// Child element is what we're looking for.
@@ -948,11 +958,13 @@ public class BeanDefinitionParserDelegate {
 					error(elementName + " must not contain more than one sub-element", ele);
 				}
 				else {
+					// 当前<property>元素包含有子元素
 					subElement = (Element) node;
 				}
 			}
 		}
 
+		// 判断property的属性值是ref还是value，不允许即是ref又是value
 		boolean hasRefAttribute = ele.hasAttribute(REF_ATTRIBUTE);
 		boolean hasValueAttribute = ele.hasAttribute(VALUE_ATTRIBUTE);
 		if ((hasRefAttribute && hasValueAttribute) ||
@@ -961,21 +973,29 @@ public class BeanDefinitionParserDelegate {
 					" is only allowed to contain either 'ref' attribute OR 'value' attribute OR sub-element", ele);
 		}
 
+		// 如果属性时ref，创建一个ref的数据对象RuntimeBeanReference
+		// 这个对象封装了ref信息
 		if (hasRefAttribute) {
 			String refName = ele.getAttribute(REF_ATTRIBUTE);
 			if (!StringUtils.hasText(refName)) {
 				error(elementName + " contains empty 'ref' attribute", ele);
 			}
+			// 一个指向运行时所依赖对象的引用
 			RuntimeBeanReference ref = new RuntimeBeanReference(refName);
+			// 设置这个ref的数据对象是被当前的property对象所引用
 			ref.setSource(extractSource(ele));
 			return ref;
 		}
+		// 如果属性是value，创建一个value的数据对象TypedStringValue，
+		// 这个丢下封装了value信息
 		else if (hasValueAttribute) {
 			TypedStringValue valueHolder = new TypedStringValue(ele.getAttribute(VALUE_ATTRIBUTE));
 			valueHolder.setSource(extractSource(ele));
 			return valueHolder;
 		}
+		// 如果当前<property>元素还有子元素
 		else if (subElement != null) {
+			// 解析<property>的子元素
 			return parsePropertySubElement(subElement, bd);
 		}
 		else {
