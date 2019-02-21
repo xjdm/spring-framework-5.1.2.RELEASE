@@ -287,6 +287,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		// 遍历扫描所有给定的包
 		for (String basePackage : basePackages) {
 			// 调用父类ClassPathScanningCandidateComponentProvider的方法
+			// --mark--
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				// 获取Bean定义类中@Scope注解的值，即获取Bean的作用域
