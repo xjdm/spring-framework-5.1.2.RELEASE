@@ -226,13 +226,15 @@ public class AnnotatedBeanDefinitionReader {
 		abd.setInstanceSupplier(instanceSupplier);
 		// 解析注册Bean定义的作用域，若@Scope("prototype"),则Bean为原型类型；
 		// 若@Scope("singleton")，则Bean为单态类型
+		// 调用
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		// 为注册Bean定义设置作用域
 		abd.setScope(scopeMetadata.getScopeName());
 		// 为注册Bean定义生成Bean名称
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
-		//处理注解Bean定义中的通用注解
+		// 处理注解Bean定义中的通用注解
+		// 调用
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		// 如果在向容器注册注解Bean定义时，使用了额外的限定符注解，则解析限定符注解
 		// 主要是配置的关于autowiring自动以来注入装配的限定条件，即@Qualifier注解
