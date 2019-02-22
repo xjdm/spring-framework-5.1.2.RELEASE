@@ -217,7 +217,7 @@ public class AnnotatedBeanDefinitionReader {
 	<T> void doRegisterBean(Class<T> annotatedClass, @Nullable Supplier<T> instanceSupplier, @Nullable String name,
 			@Nullable Class<? extends Annotation>[] qualifiers, BeanDefinitionCustomizer... definitionCustomizers) {
 
-		// 根据指定的注解Bean定义类，创建Spring容器中对注解Bean的封装的数据解耦股
+		// 根据指定的注解Bean定义类，创建Spring容器中对注解Bean的封装的数据结构
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(annotatedClass);
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
@@ -251,7 +251,7 @@ public class AnnotatedBeanDefinitionReader {
 					abd.setLazyInit(true);
 				}
 				// 如果使用了除@Primary和@Lazy以外的其他注解，则为该Bean添加一个autowiring自动依赖注入装配限定符，
-				// 该Bean添加一个autowiring自动装配依赖注入装配限定符，该Bean在进atowiring自动依赖注入装配时，根据
+				// 该Bean添加一个autowiring自动装配依赖注入装配限定符，该Bean在进autowiring自动依赖注入装配时，根据
 				// 名称装配限定符指定Bean
 				else {
 					abd.addQualifier(new AutowireCandidateQualifier(qualifier));
@@ -262,7 +262,7 @@ public class AnnotatedBeanDefinitionReader {
 			customizer.customize(abd);
 		}
 
-		// 创建一个指定Bean名称的Bean定义对象，封装注解Bena定义类数据
+		// 创建一个指定Bean名称的Bean定义对象，封装注解Bean定义类数据
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		// 根据注解Bean定义类中配置的作用域，创建定义的代理对象
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);

@@ -87,6 +87,7 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 			// 所有的注解和注解的值存放在一个map集合中
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
 					annDef.getMetadata(), this.scopeAnnotationType);
+
 			// 将获取到的@Scope注解的值设置到要返回的对象中
 			if (attributes != null) {
 				metadata.setScopeName(attributes.getString("value"));
